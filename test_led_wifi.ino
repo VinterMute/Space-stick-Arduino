@@ -72,6 +72,7 @@ uint8_t lvl3 = 80;
 uint8_t mul1 = 20;          // Frequency, thus the distance between waves
 uint8_t mul2 = 25;
 uint8_t mul3 = 22;
+uint8_t test = 23;
 
 //...parameters
 const char *ssid = APSSID;
