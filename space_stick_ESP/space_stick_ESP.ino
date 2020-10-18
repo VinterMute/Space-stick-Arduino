@@ -100,31 +100,43 @@ void setup() {
     //read ssid and passwd
     byte ssid_size = EEPROM.read(1);
     byte password_size = EEPROM.read(2);
-    char ssid_wifi[ssid_size + 1];
-    char password_wifi[password_size + 1];
+    char ssid_wifi[ssid_size];
+    char password_wifi[password_size];
 
     Serial.print("SSID_IS_");
     //Считываем ssid из памяти
     for (int i = 3; i < ssid_size + 3; ++i ) {
-      ssid_wifi[i - 3] = (char) EEPROM.read(i) + '0';
+      ssid_wifi[i - 3] = (char) EEPROM.read(i);// -3 нужно для сдвига i для массива
       Serial.print((char) EEPROM.read(i));
     }
     Serial.println();
     Serial.print("PASSWD_IS_");
     //Считываем пароль из памяти
     for (int i = 3 + ssid_size; i < ssid_size + 3 + password_size; ++i ) {
-      password_wifi[i - 3 - ssid_size] = (char) EEPROM.read(i) + '0';
+      password_wifi[i - 3 - ssid_size] = (char) EEPROM.read(i);
       Serial.print((char) EEPROM.read(i));
     }
     Serial.println();
 
-    //
+    //Здесь и далее выполняю преобразование массива char в String
+    //Почему бы сразу не сделать это в верхних форах
+    String wifi;
+    for (int i = 0; i < sizeof(ssid_wifi); i++) {
+      wifi = wifi + ssid_wifi[i];
+    }
+
+    String passwd;
+    for (int i = 0; i < sizeof(password_wifi); i++) {
+      passwd = passwd + password_wifi[i];
+    }
+
+
 
     //connect
     WiFi.mode(WIFI_STA);
-    WiFi.begin(String(ssid_wifi), String(password_wifi));//вот эти переменные нужно тащить из памяти
-    Serial.println(String(ssid_wifi));
-    Serial.println(String(password_wifi));
+    WiFi.begin(wifi, passwd);//вот эти переменные нужно тащить из памяти
+    Serial.println(wifi);
+    Serial.println(passwd);
 
     EEPROM.write(0, 0);//Меняем флаг  для смены режима в точку доступа после перезагрузки
     EEPROM.commit();
@@ -139,8 +151,8 @@ void setup() {
     Serial.println("IP address: ");
     Serial.println(WiFi.localIP());
 
-    
-    
+
+
   }
   else {
     Serial.print("Configuring access point...");
@@ -153,7 +165,7 @@ void setup() {
   }
 
 
-  
+
 
 
   //API methods
@@ -289,10 +301,10 @@ void handleSwitch() {
 
     const char* ssid_wifi = new char[ssid_size];
     const char* password_wifi = new char[password_size];
-    
-     ssid_wifi = server.arg("ssid").c_str();
-     password_wifi = server.arg("password").c_str();
-     
+
+    ssid_wifi = server.arg("ssid").c_str();
+    password_wifi = server.arg("password").c_str();
+
 
     //Поднимаем флаг и пишем размеры ssid и пароля в первые 3 ячейки
     Serial.println("Поднимаем флаг");
@@ -305,20 +317,20 @@ void handleSwitch() {
       Serial.print("ЗАпиСали ____");
       Serial.print(ssid_wifi[i - 3]);
     }
-    
+
     Serial.println();// Разделитель вывода
-    
+
     //Записываем пароль в  eeprom
     for (int i = ssid_size + 3; i < ssid_size + password_size + 3; i++) {
       EEPROM.write(i, password_wifi[i - 3 - ssid_size]);
       Serial.print("ЗАпиСали ____");
       Serial.print(password_wifi[i - 3 - ssid_size]);
     }
-  EEPROM.commit();
-  server.send(200);
-  delay(500);
-  ESP.restart();
- 
+    EEPROM.commit();
+    server.send(200);
+    delay(500);
+    ESP.restart();
+
   }
 }
 
